@@ -12,12 +12,12 @@
       <% for (let i in urls) {%>
       <li>
       <div>
-        <%=i;%>&#x2192;<a href="/u/<%=i%>"><%=urls[i];%></a>
         <form method="POST" action="/urls/<%=i%>/delete">
-          <a href="/urls/<%=i%>" onclick="POST">Edit</a>
+          <%=i;%>&#x2192;<a href="/u/<%=i%>"><%=urls[i];%></a>&nbsp;&nbsp;&nbsp;&nbsp;
+          <a href="/urls/<%=i%>" onclick="POST">Edit</a>&nbsp;&nbsp;&nbsp;&nbsp;
           <input type="submit" value="Delete"/>
         </form>
-        </div>
+      </div>
       </li>
       <% }%>
     </ul>
