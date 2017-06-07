@@ -1,3 +1,4 @@
+<!-- qweqweqeqweq-->
 <DOCTYPE html>
 <html lang="en">
 <head>
@@ -13,6 +14,7 @@
       <div>
         <%=i;%>&#x2192;<a href="/u/<%=i%>"><%=urls[i];%></a>
         <form method="POST" action="/urls/<%=i%>/delete">
+          <a href="/urls/<%=i%>" onclick="POST">Edit</a>
           <input type="submit" value="Delete"/>
         </form>
         </div>

@@ -5,7 +5,13 @@
   <% include ./partials/_header%>
 </head>
 <body>
-  <p><%=URL%></p>
-  <p><%=shortURL%></p>
+  <h1>ShortURL:<b><%=shortURL%></b></h1>
+  <form method="POST" action="/urls/<%=shortURL%>">
+    <p><%=URL%></p>
+    <input type="text" name="tempURL" value="<%=URL%>">
+    <input type="submit" value="update">
+  </form>
+
+  <p><a href="/urls">Back to List</a></p>
 </body>
 </html>

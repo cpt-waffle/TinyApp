@@ -17,7 +17,7 @@ var urlDataBase = {
   "9sm5xK": "http://www.google.com"
 };
 
-console.log(generateRandomString());
+//console.log(generateRandomString());
 
 app.get("/", function(request,response) {
   response.end("Hello World");
@@ -35,6 +35,8 @@ app.get("/urls/new", function(request, response) {
   response.render("urls_new");
 });
 
+
+
 //ask why /urls gives out a post call? should be /urls_new??
 app.post("/urls", function(request, response) {
   //console.log(request.body);  // debug statement to see POST parameters
@@ -43,14 +45,16 @@ app.post("/urls", function(request, response) {
 
   //console.log(request.body);
   urlDataBase[shortURL] = longURL;
-  console.log(urlDataBase);
+  //console.log(urlDataBase);
   response.redirect(("/urls/"+shortURL));
   //response.send("Ok");         // Respond with 'Ok' (we will replace this)
 });
 
-app.post("/urls/:ShortURL/delete", function(request, response) {
-  response.end("DELETE PAGE SOMEWHERE HERE");
+app.post("/urls/:shortURL", function(request, response){
+  urlDataBase[request.params.shortURL] = request.body.tempURL;
+  response.redirect("/urls");
 });
+
 
 app.get("/u/:shortURL", function(request, response) {
 
@@ -58,6 +62,25 @@ app.get("/u/:shortURL", function(request, response) {
   //console.log(longURL);
   response.redirect(longURL);
 });
+
+app.post("/urls/:shortURL/delete", function(request, response) {
+  //console.log(request.params.shortURL);
+  let found = false;
+  for (let i in urlDataBase)
+    if (i === request.params.shortURL)
+      found = true;
+
+  if (found)
+  {
+    delete urlDataBase[request.params.shortURL];
+    response.redirect("/urls");
+  }
+  else
+    response.end("Cannot Find URL");
+});
+
+
+
 
 
 app.get("/urls", function(request, response) {
