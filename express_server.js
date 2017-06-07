@@ -48,6 +48,10 @@ app.post("/urls", function(request, response) {
   //response.send("Ok");         // Respond with 'Ok' (we will replace this)
 });
 
+app.post("/urls/:ShortURL/delete", function(request, response) {
+  response.end("DELETE PAGE SOMEWHERE HERE");
+});
+
 app.get("/u/:shortURL", function(request, response) {
 
   let longURL = urlDataBase[request.params.shortURL];
