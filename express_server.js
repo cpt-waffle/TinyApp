@@ -35,11 +35,13 @@ app.get("/urls/new", function(request, response) {
   response.render("urls_new");
 });
 
+//ask why /urls gives out a post call? should be /urls_new??
 app.post("/urls", function(request, response) {
   //console.log(request.body);  // debug statement to see POST parameters
   let longURL = request.body.longURL;
   let shortURL = generateRandomString();
 
+  console.log(request.body);
   urlDataBase[shortURL] = longURL;
   console.log(urlDataBase);
   response.redirect(("/urls/"+shortURL));
