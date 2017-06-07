@@ -1,0 +1,15 @@
+<DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <% include ./partials/_header%>
+</head>
+<body>
+  <ul>
+    <% for (let i in urls) {%>
+    <li><%=i;%> ==> <%=urls[i];%></li>
+  <% }%>
+  </ul>
+  <a href="">Shortening Link</a>
+</body>
+</html>
