@@ -35,15 +35,27 @@ app.get("/urls/new", function(request, response) {
   response.render("urls_new");
 });
 
-app.post("/urls", (req, res) => {
-  console.log(req.body);  // debug statement to see POST parameters
-  response.send("Ok");         // Respond with 'Ok' (we will replace this)
+app.post("/urls", function(request, response) {
+  //console.log(request.body);  // debug statement to see POST parameters
+  let longURL = request.body.longURL;
+  let shortURL = generateRandomString();
+
+  urlDataBase[shortURL] = longURL;
+  console.log(urlDataBase);
+  response.redirect(("/urls/"+shortURL));
+  //response.send("Ok");         // Respond with 'Ok' (we will replace this)
+});
+
+app.get("/u/:shortURL", function(request, response) {
+
+  let longURL = urlDataBase[request.params.shortURL];
+  console.log(longURL);
+  response.redirect(longURL);
 });
 
 
 app.get("/urls", function(request, response) {
   let templateVars = { urls: urlDataBase };
-  let test = "THIS IS A TEST";
   response.render("urls_index", templateVars);
 });
 
