@@ -41,7 +41,7 @@ app.post("/urls", function(request, response) {
   let longURL = request.body.longURL;
   let shortURL = generateRandomString();
 
-  console.log(request.body);
+  //console.log(request.body);
   urlDataBase[shortURL] = longURL;
   console.log(urlDataBase);
   response.redirect(("/urls/"+shortURL));
@@ -51,7 +51,7 @@ app.post("/urls", function(request, response) {
 app.get("/u/:shortURL", function(request, response) {
 
   let longURL = urlDataBase[request.params.shortURL];
-  console.log(longURL);
+  //console.log(longURL);
   response.redirect(longURL);
 });
 

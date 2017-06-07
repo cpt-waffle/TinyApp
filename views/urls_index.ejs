@@ -5,11 +5,14 @@
   <% include ./partials/_header%>
 </head>
 <body>
-  <ul>
-    <% for (let i in urls) {%>
-    <li><%=i;%> ==> <%=urls[i];%></li>
-  <% }%>
-  </ul>
+  <h2>Your Short URLS</h2>
+  <div>
+    <ul>
+      <% for (let i in urls) {%>
+      <li><a href="/urls/<%=i%>"><%=i;%></a> ==> <%=urls[i];%></li>
+      <% }%>
+    </ul>
+  </div>
   <a href="">Shortening Link</a>
 </body>
 </html>
