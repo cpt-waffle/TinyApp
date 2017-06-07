@@ -3,12 +3,15 @@ function generateRandomString() {
   return randomString.generate(6);
 }
 
-
-let express = require("express");
-let app = express();
-let PORT = 8080;
 const bodyParser = require("body-parser");
+let express = require("express");
+let cookieParser = require("cookie-parser");
+let app = express();
+
+let PORT = 8080;
+
 app.use(bodyParser.urlencoded({extended: true}));
+app.use(cookieParser());
 
 app.set("view engine", "ejs");
 
@@ -19,6 +22,7 @@ var urlDataBase = {
 
 //console.log(generateRandomString());
 
+////////////////////DEBUG SET/////////////////////////////////////
 app.get("/", function(request,response) {
   response.end("Hello World");
 });
@@ -34,10 +38,11 @@ app.get("/hello", function(request, response) {
 app.get("/urls/new", function(request, response) {
   response.render("urls_new");
 });
+///////////////////////////////////////////////////////////////////
 
 
 
-//ask why /urls gives out a post call? should be /urls_new??
+///////////////////////POST FUNCTIONS//////////////////////////////
 app.post("/urls", function(request, response) {
   //console.log(request.body);  // debug statement to see POST parameters
   let longURL = request.body.longURL;
@@ -50,17 +55,16 @@ app.post("/urls", function(request, response) {
   //response.send("Ok");         // Respond with 'Ok' (we will replace this)
 });
 
-app.post("/urls/:shortURL", function(request, response){
+app.post("/urls/:shortURL", function(request, response) {
   urlDataBase[request.params.shortURL] = request.body.tempURL;
   response.redirect("/urls");
 });
 
-
-app.get("/u/:shortURL", function(request, response) {
-
-  let longURL = urlDataBase[request.params.shortURL];
-  //console.log(longURL);
-  response.redirect(longURL);
+app.post("/login", function(request, response) {
+  let name = request.body.username;
+  console.log(name);
+  response.cookie('username', name);
+  response.redirect("/urls");
 });
 
 app.post("/urls/:shortURL/delete", function(request, response) {
@@ -79,22 +83,38 @@ app.post("/urls/:shortURL/delete", function(request, response) {
     response.end("Cannot Find URL");
 });
 
+app.post("/logout", function(request, response) {
+  response.clearCookie("username", request.cookies["username"]);
+  response.redirect("/urls");
+});
+
+////////////////////POST FUNCTIONS END/////////////////////////////
 
 
 
+///////////////////GET FUNCTIONS///////////////////////////////////
+app.get("/u/:shortURL", function(request, response) {
+
+  let longURL = urlDataBase[request.params.shortURL];
+  //console.log(longURL);
+  response.redirect(longURL);
+});
 
 app.get("/urls", function(request, response) {
-  let templateVars = { urls: urlDataBase };
+  let templateVars = { urls: urlDataBase,
+                       username: request.cookies["username"] };
+  console.log(templateVars);
   response.render("urls_index", templateVars);
 });
 
 app.get("/urls/:id", function(request, response) {
 
   let templateVars = { shortURL: request.params.id,
-                        URL: urlDataBase[request.params.id]};
+                        URL: urlDataBase[request.params.id],
+                        username:request.cookies["username"]};
   response.render("urls_show", templateVars);
 });
-
+//////////////////GET FUNCTIONS END////////////////////////////////
 
 
 app.listen(PORT, function() {
