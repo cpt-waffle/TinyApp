@@ -15,10 +15,18 @@ app.use(cookieParser());
 
 app.set("view engine", "ejs");
 
+
 let urlDataBase = {
-  "b2xVn2": "http://www.lighthouselabs.ca",
-  "L3eTWw": "http://www.wired.com",
-  "9sm5xK": "http://www.google.com",
+  "11111" :
+      { "b2xVn2": "http://www.netflix.com",
+        "L3eTWw": "http://www.facebook.com",
+        "9sm5xK": "http://www.armorgames.com"
+      },
+  "22222" :
+      { "Hc38Zt": "http://www.lighthouselabs.ca",
+        "F0le3z": "http://www.wired.com",
+        "BtCc4l": "http://www.google.com"
+      }
 };
 
 const users = {
@@ -27,14 +35,14 @@ const users = {
     email: "user@example.com",
     password: "purple-monkey-dinosaur"
   },
- "user2RandomID": {
-    id: "user2RandomID",
+ "22222": {
+    id: "22222",
     email: "user2@example.com",
     password: "dishwasher-funk"
   },
 
- "L3eTWw": {
-    id: "L3eTWw",
+ "11111": {
+    id: "11111",
     email: "vasily.klimkin@gmail.com",
     password: "wubb"
   }
@@ -57,7 +65,10 @@ app.get("/hello", function(request, response) {
 });
 
 app.get("/urls/new", function(request, response) {
-  response.render("urls_new");
+  if (request.cookies["user_id"])
+    response.render("urls_new");
+  else
+    response.redirect("/login");
 });
 ///////////////////////////////////////////////////////////////////
 
@@ -93,6 +104,8 @@ app.post("/register", function(request, response) {
                 email: email,
                 password: password};
 
+    urlDataBase[id] = {};
+
     response.cookie("user_id", id);
     response.redirect("/urls");
   }
@@ -100,19 +113,19 @@ app.post("/register", function(request, response) {
 
 
 app.post("/urls", function(request, response) {
-  //console.log(request.body);  // debug statement to see POST parameters
+  console.log(request.body);  // debug statement to see POST parameters
   let longURL = request.body.longURL;
   let shortURL = generateRandomString();
 
   //console.log(request.body);
-  urlDataBase[shortURL] = longURL;
+  urlDataBase[request.cookies["user_id"]][shortURL] = longURL;
   //console.log(urlDataBase);
   response.redirect(("/urls/"+shortURL));
   //response.send("Ok");         // Respond with 'Ok' (we will replace this)
 });
 
 app.post("/urls/:shortURL", function(request, response) {
-  urlDataBase[request.params.shortURL] = request.body.tempURL;
+  urlDataBase[request.cookies["user_id"]][request.params.shortURL] = request.body.tempURL;
   response.redirect("/urls");
 });
 
@@ -149,13 +162,13 @@ app.post("/login", function(request, response) {
 app.post("/urls/:shortURL/delete", function(request, response) {
   //console.log(request.params.shortURL);
   let found = false;
-  for (let i in urlDataBase)
+  for (let i in urlDataBase[request.cookies["user_id"]])
     if (i === request.params.shortURL)
       found = true;
 
   if (found)
   {
-    delete urlDataBase[request.params.shortURL];
+    delete urlDataBase[request.cookies["user_id"]][request.params.shortURL];
     response.redirect("/urls");
   }
   else
@@ -178,28 +191,44 @@ app.get("/login", function(request, response) {
 
 app.get("/u/:shortURL", function(request, response) {
 
-  let longURL = urlDataBase[request.params.shortURL];
+  let longURL;
+  for (let ids in urlDataBase)
+  {
+    for (let shortUrls in urlDataBase[ids])
+    {
+      if (shortUrls === request.params.shortURL)
+        longURL = urlDataBase[ids][shortUrls];
+    }
+  }
+  //let longURL = urlDataBase[request.cookies["user_id"]][request.params.shortURL];
   //console.log(longURL);
-  response.redirect(longURL);
+  if (longURL)
+    response.redirect(longURL);
+  else
+    response.status(400).send("Bad short URL!");
 });
 
 app.get("/urls", function(request, response) {
 
-  console.log(users[request.cookies["user_id"]]);
+  //console.log(users[request.cookies["user_id"]]);
 
-  let templateVars = { urls: urlDataBase,
+  let templateVars = { urls: urlDataBase[request.cookies["user_id"]],
                        user: users[request.cookies["user_id"]] };
-  //console.log(templateVars);
 
-  //console.log("IM HERE" + templateVars);
+
+
   console.log(templateVars);
+  for (let i in templateVars.urls)
+  {
+    console.log("==>"+i);
+  }
   response.render("urls_index", templateVars);
 });
 
 app.get("/urls/:id", function(request, response) {
 
   let templateVars = { shortURL: request.params.id,
-                        URL: urlDataBase[request.params.id],
+                        URL: urlDataBase[request.cookies["user_id"]][request.params.id],
                         user:users[request.cookies["user_id"]]};
   response.render("urls_show", templateVars);
 });
