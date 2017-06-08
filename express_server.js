@@ -43,6 +43,11 @@ app.get("/urls/new", function(request, response) {
 
 
 ///////////////////////POST FUNCTIONS//////////////////////////////
+app.post("/register", function(request, response) {
+  response.end("REGISTER POST");
+});
+
+
 app.post("/urls", function(request, response) {
   //console.log(request.body);  // debug statement to see POST parameters
   let longURL = request.body.longURL;
@@ -83,11 +88,12 @@ app.post("/urls/:shortURL/delete", function(request, response) {
     response.end("Cannot Find URL");
 });
 
+
+
 app.post("/logout", function(request, response) {
   response.clearCookie("username", request.cookies["username"]);
   response.redirect("/urls");
 });
-
 ////////////////////POST FUNCTIONS END/////////////////////////////
 
 
@@ -112,6 +118,11 @@ app.get("/urls/:id", function(request, response) {
                         URL: urlDataBase[request.params.id],
                         username:request.cookies["username"]};
   response.render("urls_show", templateVars);
+});
+
+app.get("/register", function(request, response) {
+  //response.end("REGISTER PAGE TEST");
+  response.render("register");
 });
 //////////////////GET FUNCTIONS END////////////////////////////////
 
