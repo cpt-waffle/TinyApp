@@ -91,7 +91,6 @@ app.post("/logout", function(request, response) {
 ////////////////////POST FUNCTIONS END/////////////////////////////
 
 
-
 ///////////////////GET FUNCTIONS///////////////////////////////////
 app.get("/u/:shortURL", function(request, response) {
 
