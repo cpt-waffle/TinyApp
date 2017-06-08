@@ -1,0 +1,23 @@
+<DOCTYPE html>
+<html lang="en">
+<head>
+
+<table>
+  <tr>
+    <th>ID</th>
+    <th>EMAIL</th>
+    <th>PASS</th>
+  </tr>
+  <%for (let i in users) {%>
+  <tr>
+
+    <td><%=users[i].id%></td>
+    <td><%=users[i].email%></td>
+    <td><%=users[i].password%></td>
+  </tr>
+  <%}%>
+
+</table>
+
+</body>
+</html>
