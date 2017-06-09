@@ -8,6 +8,7 @@ const bodyParser = require("body-parser");
 let express = require("express");
 let cookieSession = require("cookie-session");
 let bcrypt = require("bcrypt");
+let methodOverride = require('method-override');
 const PORT = 8080;
 //package imports end/////
 
@@ -15,6 +16,7 @@ const PORT = 8080;
 //server setup
 let app = express();
 //middlewear setup
+app.use(methodOverride('_method'));
 app.use(bodyParser.urlencoded({extended: true}));
 app.use(cookieSession({name: 'user_id', secret:"mysecret"}));
 app.set("view engine", "ejs");
@@ -122,7 +124,7 @@ app.post("/urls", function(request, response) {
   response.redirect(("/urls/"+shortURL));
 });
 
-app.post("/urls/:shortURL", function(request, response) {
+app.put("/urls/:shortURL", function(request, response) {
   urlDataBase[request.session.user_id][request.params.shortURL] = request.body.tempURL;
   response.redirect("/urls");
 });
@@ -147,7 +149,7 @@ app.post("/login", function(request, response) {
   }
 });
 
-app.post("/urls/:shortURL/delete", function(request, response) {
+app.delete("/urls/:shortURL", function(request, response) {
   let found = false;
   for (let i in urlDataBase[request.session.user_id])
     if (i === request.params.shortURL)
@@ -155,6 +157,7 @@ app.post("/urls/:shortURL/delete", function(request, response) {
 
   if (found)
   {
+    console.log(urlDataBase[request.session.user_id][request.params.shortURL]);
     delete urlDataBase[request.session.user_id][request.params.shortURL];
     response.redirect("/urls");
   }

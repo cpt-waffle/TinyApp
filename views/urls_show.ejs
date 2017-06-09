@@ -6,7 +6,7 @@
 </head>
 <body>
   <h1>ShortURL:<b><%=shortURL%></b></h1>
-  <form method="POST" action="/urls/<%=shortURL%>">
+  <form method="POST" action="/urls/<%=shortURL%>/?_method=PUT">
     <p><%=URL%></p>
     <input type="text" name="tempURL" value="<%=URL%>">
     <input type="submit" value="update">
