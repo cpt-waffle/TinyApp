@@ -6,6 +6,7 @@ function generateRandomString() {
 const bodyParser = require("body-parser");
 let express = require("express");
 let cookieParser = require("cookie-parser");
+let bcrypt = require("bcrypt");
 let app = express();
 
 let PORT = 8080;
@@ -33,18 +34,18 @@ const users = {
   "userRandomID": {
     id: "userRandomID",
     email: "user@example.com",
-    password: "purple-monkey-dinosaur"
+    password: bcrypt.hashSync("purple-monkey-dinosaur", 10)
   },
  "22222": {
     id: "22222",
     email: "user2@example.com",
-    password: "dishwasher-funk"
+    password: bcrypt.hashSync("dishwasher-funk", 10)
   },
 
  "11111": {
     id: "11111",
     email: "vasily.klimkin@gmail.com",
-    password: "wubb"
+    password: bcrypt.hashSync("wubb",10)
   }
 }
 
@@ -57,7 +58,7 @@ app.get("/", function(request,response) {
 });
 
 app.get("/urls.json", function(request,response) {
-  response.json(urlDataBase);
+  response.json(users);
 });
 
 app.get("/hello", function(request, response) {
@@ -80,9 +81,9 @@ app.get("/user_test", function(reqst, response) {
 ///////////////////////POST FUNCTIONS//////////////////////////////
 app.post("/register", function(request, response) {
   let email = request.body.email;
-  let password = request.body.pass;
+  let pass = request.body.pass;
 
-  if (!email || email === "" && !password || password == "")
+  if (!email || email === "" && !pass || pass == "")
   {
     response.sendStatus(400);
   }
@@ -98,6 +99,7 @@ app.post("/register", function(request, response) {
     if (match)
       response.sendStatus(400);
 
+    let password = bcrypt.hashSync(pass,10);
     let id = generateRandomString();
     console.log(`${email}     ${password}`);
     users[id] = {id: id,
@@ -142,7 +144,7 @@ app.post("/login", function(request, response) {
     for (let i in users)
     {
       if (users[i].email === name)
-        if (users[i].password === pass)
+        if (bcrypt.compareSync(pass,users[i].password))
         {
           response.cookie('user_id', i);
           response.redirect("/urls");
