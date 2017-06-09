@@ -3,20 +3,23 @@ function generateRandomString() {
   return randomString.generate(6);
 }
 
+//All package imports (NPM)
 const bodyParser = require("body-parser");
 let express = require("express");
-let cookieParser = require("cookie-parser");
+let cookieSession = require("cookie-session");
 let bcrypt = require("bcrypt");
+const PORT = 8080;
+//package imports end/////
+
+
+//server setup
 let app = express();
-
-let PORT = 8080;
-
+//middlewear setup
 app.use(bodyParser.urlencoded({extended: true}));
-app.use(cookieParser());
-
+app.use(cookieSession({name: 'user_id', secret:"mysecret"}));
 app.set("view engine", "ejs");
 
-
+////////////////////////DB SETS////////////////////////////////
 let urlDataBase = {
   "11111" :
       { "b2xVn2": "http://www.netflix.com",
@@ -48,9 +51,9 @@ const users = {
     password: bcrypt.hashSync("wubb",10)
   }
 }
+////////////////////////DB SETS END/////////////////////////////
 
 
-//console.log(generateRandomString());
 
 ////////////////////DEBUG SET/////////////////////////////////////
 app.get("/", function(request,response) {
@@ -66,17 +69,17 @@ app.get("/hello", function(request, response) {
 });
 
 app.get("/urls/new", function(request, response) {
-  if (request.cookies["user_id"])
+  if (request.session.user_id)
     response.render("urls_new");
   else
     response.redirect("/login");
 });
-///////////////////////////////////////////////////////////////////
-
 
 app.get("/user_test", function(reqst, response) {
   response.render("user_test", {users});
 });
+///////////////////////////////////////////////////////////////////
+
 
 ///////////////////////POST FUNCTIONS//////////////////////////////
 app.post("/register", function(request, response) {
@@ -84,61 +87,51 @@ app.post("/register", function(request, response) {
   let pass = request.body.pass;
 
   if (!email || email === "" && !pass || pass == "")
-  {
-    response.sendStatus(400);
-  }
-  else
-  {
+    response.status(400).send("Fields Cannot be Empty");
+  else {
+
     let match = false;
-    for (let i in users)
-    {
+    for (let i in users) {
+
       if (users[i].email === email)
         match = true;
     }
 
     if (match)
-      response.sendStatus(400);
+      response.status(400).send("User already exists");
+    else {
+      let password = bcrypt.hashSync(pass,10);
+      let id = generateRandomString();
+      users[id] = {id: id,
+                  email: email,
+                  password: password};
 
-    let password = bcrypt.hashSync(pass,10);
-    let id = generateRandomString();
-    console.log(`${email}     ${password}`);
-    users[id] = {id: id,
-                email: email,
-                password: password};
+      urlDataBase[id] = {};
 
-    urlDataBase[id] = {};
-
-    response.cookie("user_id", id);
-    response.redirect("/urls");
+      request.session.user_id = id;
+      response.redirect("/urls");
+    }
   }
 });
 
-
 app.post("/urls", function(request, response) {
-  console.log(request.body);  // debug statement to see POST parameters
   let longURL = request.body.longURL;
   let shortURL = generateRandomString();
 
-  //console.log(request.body);
-  urlDataBase[request.cookies["user_id"]][shortURL] = longURL;
-  //console.log(urlDataBase);
+  urlDataBase[request.session.user_id][shortURL] = longURL;
   response.redirect(("/urls/"+shortURL));
-  //response.send("Ok");         // Respond with 'Ok' (we will replace this)
 });
 
 app.post("/urls/:shortURL", function(request, response) {
-  urlDataBase[request.cookies["user_id"]][request.params.shortURL] = request.body.tempURL;
+  urlDataBase[request.session.user_id][request.params.shortURL] = request.body.tempURL;
   response.redirect("/urls");
 });
 
 app.post("/login", function(request, response) {
   let name = request.body.username;
   let pass = request.body.password;
-  console.log()
   if (!name || name === "" && !pass || pass == "")
-  {
     response.status(400).send("Fields Cannot be Empty");
-  }
   else
   {
     for (let i in users)
@@ -146,45 +139,36 @@ app.post("/login", function(request, response) {
       if (users[i].email === name)
         if (bcrypt.compareSync(pass,users[i].password))
         {
-          response.cookie('user_id', i);
+          request.session.user_id = i;
           response.redirect("/urls");
         }
     }
     response.status(400).send("Login or password is incorrect!");
-
-
-
   }
-  // console.log(name);
-
-  // response.cookie('user_id', name);
-  // response.redirect("/urls");
 });
 
 app.post("/urls/:shortURL/delete", function(request, response) {
-  //console.log(request.params.shortURL);
   let found = false;
-  for (let i in urlDataBase[request.cookies["user_id"]])
+  for (let i in urlDataBase[request.session.user_id])
     if (i === request.params.shortURL)
       found = true;
 
   if (found)
   {
-    delete urlDataBase[request.cookies["user_id"]][request.params.shortURL];
+    delete urlDataBase[request.session.user_id][request.params.shortURL];
     response.redirect("/urls");
   }
   else
-    response.end("Cannot Find URL");
+    response.status(400).send("Cannt find URL to delete :(");
 });
 
 
 
 app.post("/logout", function(request, response) {
-  response.clearCookie("user_id", request.cookies["user_id"]);
+  request.session = null;
   response.redirect("/urls");
 });
 ////////////////////POST FUNCTIONS END/////////////////////////////
-
 
 ///////////////////GET FUNCTIONS///////////////////////////////////
 app.get("/login", function(request, response) {
@@ -202,8 +186,6 @@ app.get("/u/:shortURL", function(request, response) {
         longURL = urlDataBase[ids][shortUrls];
     }
   }
-  //let longURL = urlDataBase[request.cookies["user_id"]][request.params.shortURL];
-  //console.log(longURL);
   if (longURL)
     response.redirect(longURL);
   else
@@ -212,35 +194,23 @@ app.get("/u/:shortURL", function(request, response) {
 
 app.get("/urls", function(request, response) {
 
-  //console.log(users[request.cookies["user_id"]]);
-
-  let templateVars = { urls: urlDataBase[request.cookies["user_id"]],
-                       user: users[request.cookies["user_id"]] };
-
-
-
-  console.log(templateVars);
-  for (let i in templateVars.urls)
-  {
-    console.log("==>"+i);
-  }
+  let templateVars = { urls: urlDataBase[request.session.user_id],
+                       user: users[request.session.user_id]};
   response.render("urls_index", templateVars);
 });
 
 app.get("/urls/:id", function(request, response) {
 
   let templateVars = { shortURL: request.params.id,
-                        URL: urlDataBase[request.cookies["user_id"]][request.params.id],
-                        user:users[request.cookies["user_id"]]};
+                        URL: urlDataBase[request.session.user_id][request.params.id],
+                        user:users[request.session.user_id]};
   response.render("urls_show", templateVars);
 });
 
 app.get("/register", function(request, response) {
-  //response.end("REGISTER PAGE TEST");
   response.render("register");
 });
 //////////////////GET FUNCTIONS END////////////////////////////////
-
 
 app.listen(PORT, function() {
   console.log(`Example app listening on port ${PORT}!`);
