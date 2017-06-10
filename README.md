@@ -4,8 +4,9 @@ TinyApp is full stack web application built with NodeJS and Express that allows 
 
 ## Final Product
 
--
--
+-![Screenshot of URL logged off](https://github.com/waff1e/TinyApp/blob/master/docs/loggedOut_homepage.png?raw=true)
+-![Screenshot of Logged in user](https://github.com/waff1e/TinyApp/blob/master/docs/urls_screenshot.png?raw=true)
+-![Screenshot of edit Page](https://github.com/waff1e/TinyApp/blob/master/docs/edit_urls.png?raw=true)
 
 ## Dependancies
 
@@ -21,6 +22,8 @@ TinyApp is full stack web application built with NodeJS and Express that allows 
 
 ## Important
 - This project uses bootsrap for some css styling. Make sure you have bootstrap set up as well (just incase npm doesn't do it. I have it installed globaly.)
+- To install bootstrap: `npm install bootsrap@3
+- For more info visit: http://getbootstrap.com/getting-started/
 
 ## Getting Started
 
