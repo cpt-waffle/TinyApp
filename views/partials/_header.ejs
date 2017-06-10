@@ -1,11 +1,17 @@
 <title>TinyApp</title>
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
 
 <% if (!user) {%>
-  <a href="/register">Register here!</a>
+  <br/>
   <a href="/login">Login</a>
+  <br/>
+  <a href="/register">Register here!</a>
+  <br/>
+  <br/>
+
 <%} if(user) { %>
   <form method="POST" action="/logout">
-  <h2><%= user.email%></h2>
+  <h6><%= user.email%></h6>
   <input type="submit" value="Logout">
   </form>
 

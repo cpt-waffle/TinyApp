@@ -4,14 +4,19 @@
   <meta charset="UTF-8">
   <% include ./partials/_header%>
 </head>
-<body>
-  <h1>ShortURL:<b><%=shortURL%></b></h1>
-  <form method="POST" action="/urls/<%=shortURL%>/?_method=PUT">
-    <p><%=URL%></p>
-    <input type="text" name="tempURL" value="<%=URL%>">
-    <input type="submit" value="update">
-  </form>
-
-  <p><a href="/urls">Back to List</a></p>
+  <body style="background-color:lightblue">
+    <div class="container">
+      <div class="panel panel-default" >
+        <h3 style="text-align:center;">ShortURL:<b><%=shortURL%></b></h3>
+        <form method="POST" action="/urls/<%=shortURL%>/?_method=PUT">
+          <p><b style="color:red">Currently set to:</b> <%=URL%></p>
+          <input type="text" name="tempURL" value="<%=URL%>">
+          <input type="submit" value="update">
+        </form>
+        <div style="text-align:center; padding-bottom: 10px;">
+          <p><a href="/urls" class="btn btn-primary btn-lg active" >Back to List</a></p>
+        </div>
+      </div>
+    </div>
 </body>
 </html>

@@ -9,6 +9,7 @@ let express = require("express");
 let cookieSession = require("cookie-session");
 let bcrypt = require("bcrypt");
 let methodOverride = require('method-override');
+
 const PORT = 8080;
 //package imports end/////
 
@@ -55,35 +56,10 @@ const users = {
 }
 ////////////////////////DB SETS END/////////////////////////////
 
-
-
-////////////////////DEBUG SET/////////////////////////////////////
-app.get("/", function(request,response) {
-  response.end("Hello World");
-});
-
-app.get("/urls.json", function(request,response) {
-  response.json(users);
-});
-
-app.get("/hello", function(request, response) {
-  response.end("<html><body><b>Hello World</b></body></html>");
-});
-
-app.get("/urls/new", function(request, response) {
-  if (request.session.user_id)
-    response.render("urls_new");
-  else
-    response.redirect("/login");
-});
-
-app.get("/user_test", function(reqst, response) {
-  response.render("user_test", {users});
-});
-///////////////////////////////////////////////////////////////////
-
-
 ///////////////////////POST FUNCTIONS//////////////////////////////
+
+//Registers the user in the userdatabase as long as all parameters were
+//entered and the username( or actually email) does not exist in DB
 app.post("/register", function(request, response) {
   let email = request.body.email;
   let pass = request.body.pass;
@@ -116,19 +92,29 @@ app.post("/register", function(request, response) {
   }
 });
 
+//gets the full URL from the form, generates random string
+//then pops it in the DB
 app.post("/urls", function(request, response) {
-  let longURL = request.body.longURL;
-  let shortURL = generateRandomString();
+  if (request.session.user_id) {
+    let longURL = request.body.longURL;
+    let shortURL = generateRandomString();
 
-  urlDataBase[request.session.user_id][shortURL] = longURL;
-  response.redirect(("/urls/"+shortURL));
+    urlDataBase[request.session.user_id][shortURL] = longURL;
+    response.redirect(("/urls/"+shortURL));
+  }
+  else
+    response.status(400).send("You cant post if you arent logged in");
 });
 
+//updates one of the short URLs value that was selected by user
 app.put("/urls/:shortURL", function(request, response) {
   urlDataBase[request.session.user_id][request.params.shortURL] = request.body.tempURL;
   response.redirect("/urls");
 });
 
+//tries to log you in, and if succesful lets you
+//go to /urls otherwise status code 400 and appropriate
+//error message
 app.post("/login", function(request, response) {
   let name = request.body.username;
   let pass = request.body.password;
@@ -136,37 +122,46 @@ app.post("/login", function(request, response) {
     response.status(400).send("Fields Cannot be Empty");
   else
   {
+    let found = false;
     for (let i in users)
     {
       if (users[i].email === name)
         if (bcrypt.compareSync(pass,users[i].password))
         {
+          found = true;
           request.session.user_id = i;
           response.redirect("/urls");
         }
     }
-    response.status(400).send("Login or password is incorrect!");
+    if (!found)
+      response.status(400).send("Login or password is incorrect!");
   }
 });
 
+//deletes the url that was selected by the user on URL page
+//Put a protection against curl where you can try to delete without having
+//the apporopriate cookie (USED TO BE A POST METHOD (REST))
 app.delete("/urls/:shortURL", function(request, response) {
   let found = false;
-  for (let i in urlDataBase[request.session.user_id])
-    if (i === request.params.shortURL)
-      found = true;
 
-  if (found)
-  {
-    console.log(urlDataBase[request.session.user_id][request.params.shortURL]);
-    delete urlDataBase[request.session.user_id][request.params.shortURL];
-    response.redirect("/urls");
+  if (request.session.user_id) {
+    for (let i in urlDataBase[request.session.user_id])
+      if (i === request.params.shortURL)
+        found = true;
+
+    if (found)
+    {
+      delete urlDataBase[request.session.user_id][request.params.shortURL];
+      response.redirect("/urls");
+    }
+    else
+      response.status(400).send("Cannt find URL to delete :(");
   }
   else
-    response.status(400).send("Cannt find URL to delete :(");
+    response.status(400).send("You cant delete if you are not logged in");
 });
 
-
-
+//logs you out
 app.post("/logout", function(request, response) {
   request.session = null;
   response.redirect("/urls");
@@ -174,10 +169,28 @@ app.post("/logout", function(request, response) {
 ////////////////////POST FUNCTIONS END/////////////////////////////
 
 ///////////////////GET FUNCTIONS///////////////////////////////////
+app.get("/urls/new", function(request, response) {
+  if (request.session.user_id)
+    response.render("urls_new");
+  else
+    response.redirect("/login");
+});
+
+//obligatory redirect specified by assignment standard :)
+app.get("/", function(request,response) {
+  if (request.session.user_id)
+    response.redirect("/urls");
+  else
+    response.redirect("/login");
+});
+
+
 app.get("/login", function(request, response) {
   response.render("login");
 });
 
+//when short url is put in browser with that type of adress,
+//i,e (localhost:8080)
 app.get("/u/:shortURL", function(request, response) {
 
   let longURL;
@@ -192,9 +205,11 @@ app.get("/u/:shortURL", function(request, response) {
   if (longURL)
     response.redirect(longURL);
   else
-    response.status(400).send("Bad short URL!");
+    response.status(400).send("This Short url does not exist");
 });
 
+//if logged in print out all the URLS only aded by the logged in user
+//other than that dont show the anon anything
 app.get("/urls", function(request, response) {
 
   let templateVars = { urls: urlDataBase[request.session.user_id],
@@ -202,19 +217,33 @@ app.get("/urls", function(request, response) {
   response.render("urls_index", templateVars);
 });
 
+//show the one URL that user selected to edit/update
 app.get("/urls/:id", function(request, response) {
 
-  let templateVars = { shortURL: request.params.id,
+  if (request.session.user_id) {
+
+    let templateVars = { shortURL: request.params.id,
                         URL: urlDataBase[request.session.user_id][request.params.id],
                         user:users[request.session.user_id]};
-  response.render("urls_show", templateVars);
+    response.render("urls_show", templateVars);
+  }
+  else
+  {
+    response.status(400).send("You cannot do this if you are not logged in");
+  }
 });
 
+//go to registeration if not logged in but if logged go to urls
 app.get("/register", function(request, response) {
-  response.render("register");
+    if (!request.session.user_id)
+      response.render("register");
+    else
+      response.redirect("/urls");
 });
 //////////////////GET FUNCTIONS END////////////////////////////////
 
+
+//server Start
 app.listen(PORT, function() {
   console.log(`Example app listening on port ${PORT}!`);
 });

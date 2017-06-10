@@ -2,27 +2,36 @@
 <DOCTYPE html>
 <html lang="en">
 <head>
+
   <meta charset="UTF-8">
   <% include ./partials/_header%>
-</head>
-<body>
-  <h2>Your Short URLS</h2>
-  <div>
-    <ul>
-      <% for (let i in urls) {%>
-      <li>
-      <div>
-        <form method="POST" action="/urls/<%=i%>?_method=DELETE"">
-          <%=i;%>&#x2192;<a href="/u/<%=i%>"><%=urls[i];%></a>&nbsp;&nbsp;&nbsp;&nbsp;
-          <a href="/urls/<%=i%>">Edit</a>&nbsp;&nbsp;&nbsp;&nbsp;
-          <input type="submit" value="Delete"/>
-        </form>
-      </div>
+  <!-- Latest compiled and minified CSS -->
 
-      </li>
-      <% }%>
-    </ul>
+</head>
+<body style="background-color:lightblue">
+  <div class="container">
+    <div class="panel panel-default">
+      <h1 class="" style="text-align:center">Your Short URLS</h1>
+      <div class="mydiv">
+        <% if (!urls) {%>
+          <h3>Welcome! Please log in or Register if you want to use this site</h3>
+        <%}%>
+      <table class="table table-striped">
+        <% for (let i in urls) {%>
+        <tr>
+          <form method="POST" action="/urls/<%=i%>?_method=DELETE"">
+            <td><%=i;%>&#x2192;<a href="/u/<%=i%>"><%=urls[i];%></a></td>
+            <td><a href="/urls/<%=i%>">Edit</a></td>
+            <td><input type="submit" value="Delete"/></td>
+          </form>
+        </tr>
+        <% }%>
+      </table>
+      </div>
+      <div style="text-align:center; padding-bottom: 10px;">
+      <a href="urls/new" class="btn btn-primary btn-lg active" >Shortening Link</a>
+      </div>
+    </div>
   </div>
-  <a href="urls/new">Shortening Link</a>
 </body>
 </html>
